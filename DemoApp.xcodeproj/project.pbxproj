@@ -95,8 +95,6 @@
 				CA0B28402CECEFEB00BAB8EB /* Views */,
 				CA0B28502CECF0C800BAB8EB /* Models */,
 				CA0B285B2CECF2A300BAB8EB /* Extensions */,
-				CA0B28322CEB85B300BAB8EB /* APIClient.swift */,
-				CA0B285E2CEE469000BAB8EB /* Coordinator.swift */,
 				CAAE2FCA2CEFF059002736B0 /* Utilities */,
 				AB5E775626146274004AA3B2 /* SupportingFiles */,
 			);
@@ -108,6 +106,8 @@
 			children = (
 				AB5E7740261461B7004AA3B2 /* AppDelegate.swift */,
 				AB5E7742261461B7004AA3B2 /* SceneDelegate.swift */,
+				CA0B28322CEB85B300BAB8EB /* APIClient.swift */,
+				CA0B285E2CEE469000BAB8EB /* Coordinator.swift */,
 				AB5E7749261461B9004AA3B2 /* Assets.xcassets */,
 				AB5E774B261461B9004AA3B2 /* LaunchScreen.storyboard */,
 				AB5E774E261461B9004AA3B2 /* Info.plist */,
