@@ -42,4 +42,13 @@ final class APIClient {
             .decode(type: [ContentGroup].self, decoder: JSONDecoder())
             .eraseToAnyPublisher()
     }
+    
+    func fetchSimilarAssets() -> AnyPublisher<[SimilarAsset], Error> {
+        let request = makeRequest(for: "/04Pl5AYhO6-n/data")
+        return URLSession.shared.dataTaskPublisher(for: request)
+            .map(\.data)
+            .decode(type: SimilarAssetResponse.self, decoder: JSONDecoder())
+            .map { $0.similar }
+            .eraseToAnyPublisher()
+    }
 }

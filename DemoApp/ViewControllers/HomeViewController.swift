@@ -13,9 +13,11 @@ class HomeViewController: UIViewController, UICollectionViewDelegate {
     private var viewModel = HomeViewModel()
     private var cancellables = Set<AnyCancellable>()
     private var dataSource: UICollectionViewDiffableDataSource<Section, ItemType>!
+    private var coordinator: Coordinator!
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        coordinator = Coordinator(navigationController: self.navigationController!)
         setupCollectionView()
         configureDataSource()
         bindViewModel()
@@ -25,23 +27,6 @@ class HomeViewController: UIViewController, UICollectionViewDelegate {
         viewModel.fetchContentGroups()
         
         view.backgroundColor = .white
-    }
-    
-    override func viewWillAppear(_ animated: Bool) {
-        super.viewWillAppear(animated)
-        setupNavigationBarLogo()
-    }
-    
-    private func setupNavigationBarLogo() {
-        let logoImage = UIImage(named: "logo_blue")
-        
-        let imageView = UIImageView(image: logoImage)
-        imageView.contentMode = .scaleAspectFit
-        imageView.translatesAutoresizingMaskIntoConstraints = false
-        imageView.heightAnchor.constraint(equalToConstant: 40).isActive = true
-        imageView.widthAnchor.constraint(equalToConstant: 120).isActive = true
-        
-        navigationItem.titleView = imageView
     }
     
     private func setupCollectionView() {
@@ -100,8 +85,8 @@ class HomeViewController: UIViewController, UICollectionViewDelegate {
         
         dataSource.supplementaryViewProvider = { [weak self] (collectionView, kind, indexPath) -> UICollectionReusableView? in
             guard kind == UICollectionView.elementKindSectionHeader else { return nil }
-            guard let section = Section(rawValue: indexPath.section), let headerTitle = section.headerTitle else {
-                return nil
+            guard let section = Section(rawValue: indexPath.section) else {
+                fatalError("Invalid section")
             }
             
             let header = collectionView.dequeueReusableSupplementaryView(
@@ -110,7 +95,12 @@ class HomeViewController: UIViewController, UICollectionViewDelegate {
                 for: indexPath
             ) as! SectionHeaderView
             
-            header.configure(with: headerTitle, for: indexPath.section)
+            if let headerTitle = section.headerTitle {
+                header.configure(with: headerTitle, for: indexPath.section)
+            } else {
+                header.configure(with: "", for: indexPath.section)
+            }
+            
             header.delegate = self
             return header
         }
@@ -119,7 +109,7 @@ class HomeViewController: UIViewController, UICollectionViewDelegate {
     private func bindViewModel() {
         viewModel.$promotions
             .receive(on: DispatchQueue.main)
-            .sink { [weak self] _ in
+            .sink { [weak self] promotions in
                 self?.applySnapshot()
             }
             .store(in: &cancellables)
@@ -161,7 +151,7 @@ class HomeViewController: UIViewController, UICollectionViewDelegate {
         let liveChannel = viewModel.liveChannelAssets()
         if !liveChannel.isEmpty {
             snapshot.appendSections([.liveChannel])
-            snapshot.appendItems(movieSeries.map { .liveChannel($0) }, toSection: .liveChannel)
+            snapshot.appendItems(liveChannel.map { .liveChannel($0) }, toSection: .liveChannel)
         }
         
         let epg = viewModel.epgAssets()
@@ -171,6 +161,17 @@ class HomeViewController: UIViewController, UICollectionViewDelegate {
         }
         
         dataSource.apply(snapshot, animatingDifferences: true)
+    }
+    
+    func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
+        guard let item = dataSource.itemIdentifier(for: indexPath) else { return }
+        
+        switch item {
+        case .movieSeries(let asset), .liveChannel(let asset), .epg(let asset):
+            coordinator.showAssetDetails(for: asset)
+        default:
+            break
+        }
     }
 }
 
